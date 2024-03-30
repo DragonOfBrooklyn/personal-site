@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -9,42 +9,65 @@ interface Turn {
   content: string
 }
 
-const claudeCall = async (newQuery: string, oldConversation: Turn[], setError) => {
+const claudeCall = async (
+  newQuery: string, 
+  oldConversation: Turn[], 
+  setError,
+  setClaudeResponse
+  ) => {
+  const conversation: Turn[] = [
+    ...oldConversation,
+    { role: 'user', content: newQuery }
+  ];
   const config = {
     headers: {
       'jlong-authorization': 'PersonalSiteForJordanLong',
       Accept: "application/json",
       "Content-Type": "application/json",
-    }
+    },
+    // method: 'POST',
+    // body: JSON.stringify(conversation),
   };
 
-  const conversation: Turn[] = [
-    ...oldConversation,
-    { role: 'user', content: newQuery }
-  ];
-
-  const claude_Res = await axios.post(
+  // await fetch(import.meta.env.VITE_SERVER_URL, config)
+  await axios.post(
     import.meta.env.VITE_SERVER_URL, 
-    conversation, 
-    config
+    {conversation}, 
+    config)
+  // .then((value) => value.data)
+  .then((value) => {
+    console.log('conversation data');
+    // console.log(blobData.data);
+    // console.log('convo ', value.data[0].text);
+    setClaudeResponse(value.data.text);
+  }
   ).catch((err: AxiosError) => {
     console.log(err.message)
     setError(err.message);
   });
-  console.log(claude_Res);
-  return claude_Res;
 }
 function App() {
   const [count, setCount] = useState(0);
   const [error, setError] = useState(null);
-  // const [claudeResponse, setClaudeResponse] = useState('');
+  const [claudeResponse, setClaudeResponse] = useState('');
+  const [loaded, setLoaded] = useState(false);
   // setClaudeResponse(claudeCall());
   const priorConvo: Turn[] = [
     {role: 'user', content:'Who made you?'},
     {role: 'assistant', content:'Jordan Long made me'},
-  ]
-  claudeCall("What are Jordan Long's hobbies?", priorConvo, setError);
-  // console.log('claude response', claudeCall(setError));
+  ];
+  useEffect(() => {
+    if(!loaded && !claudeResponse){
+      claudeCall(
+        "What are Jordan Long's hobbies?", 
+        priorConvo, 
+        setError, 
+        setClaudeResponse
+      );
+      setLoaded(true);
+    }
+  }, []);
+
   return (
     <>
       <div>
@@ -61,7 +84,7 @@ function App() {
           count is {count}
         </button>
         <p>
-          Output from call {error ?? count}
+          Output from call {error ?? claudeResponse}
         </p>
       </div>
       <p className="read-the-docs">
