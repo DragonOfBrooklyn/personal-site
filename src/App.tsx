@@ -12,7 +12,7 @@ import {
 import axios, { AxiosError } from 'axios';
 import JordanHiResIcon from './assets/JordanHiResIcon.jpeg';
 import './App.css'
-// import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
 interface Turn {
   role: 'user' | 'assistant',
@@ -87,7 +87,7 @@ function App() {
   }, [claudeResponse])
 
   return (
-    <div style={{ position: "relative", height: "500px" }}>
+    <div style={{ position: "relative", height: "500px", width: "800px" }}>
       <ChatContainer>
         <ConversationHeader>
           <Avatar
