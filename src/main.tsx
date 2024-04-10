@@ -5,7 +5,7 @@ import './index.css'
 
 //boilerplate code to embed the application in React's virtual DOM 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  // <React.StrictMode>
+  <React.StrictMode>
     <App />
-  // </React.StrictMode>,
+  </React.StrictMode>,
 )

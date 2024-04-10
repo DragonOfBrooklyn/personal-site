@@ -1,8 +1,19 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useRef, useEffect } from "react";
+import {
+  ChatContainer,
+  MessageList,
+  Message,
+  MessageInput,
+  ConversationHeader,
+  InfoButton,
+  Avatar,
+  TypingIndicator,
+} from "@chatscope/chat-ui-kit-react";
 import axios, { AxiosError } from 'axios'
+import JordanIcon from './assets/JordanIcon.svg';
+import JordanHiResIcon from './assets/JordanHiResIcon.jpeg';
+import './App.css'
+// import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
 interface Turn {
   role: 'user' | 'assistant',
@@ -12,7 +23,6 @@ interface Turn {
 const claudeCall = async (
   newQuery: string, 
   oldConversation: Turn[], 
-  setError,
   setClaudeResponse
   ) => {
   const conversation: Turn[] = [
@@ -25,73 +35,98 @@ const claudeCall = async (
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    // method: 'POST',
-    // body: JSON.stringify(conversation),
   };
 
-  // await fetch(import.meta.env.VITE_SERVER_URL, config)
   await axios.post(
     import.meta.env.VITE_SERVER_URL, 
     {conversation}, 
     config)
-  // .then((value) => value.data)
   .then((value) => {
-    console.log('conversation data');
-    // console.log(blobData.data);
-    // console.log('convo ', value.data[0].text);
     setClaudeResponse(value.data.text);
-  }
-  ).catch((err: AxiosError) => {
+  }).catch((err: AxiosError) => {
     console.log(err.message)
-    setError(err.message);
+    setClaudeResponse(err.message);
   });
 }
+
 function App() {
-  const [count, setCount] = useState(0);
-  const [error, setError] = useState(null);
-  const [claudeResponse, setClaudeResponse] = useState('');
-  const [loaded, setLoaded] = useState(false);
-  // setClaudeResponse(claudeCall());
-  const priorConvo: Turn[] = [
-    {role: 'user', content:'Who made you?'},
-    {role: 'assistant', content:'Jordan Long made me'},
-  ];
+  const inputRef = useRef(null);
+  const [msgInputValue, setMsgInputValue] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [claudeResponse, setClaudeResponse] = useState(undefined);
+  const [claudeThinking, setClaudeThinking] = useState(false);
+  const conversation = React.useRef<Turn[]>([
+  ]);
+
+  const handleSend = message => {
+    setClaudeThinking(true);
+    setMessages([...messages,{ 
+      message, 
+      position: 'single',
+      sender: 'You',
+      direction: 'outgoing' }]);
+    setMsgInputValue("");
+    inputRef.current?.focus();
+    claudeCall(message, conversation.current, setClaudeResponse)
+  };
+  //on page load, make first, silent prompt to Claude
   useEffect(() => {
-    if(!loaded && !claudeResponse){
-      claudeCall(
-        "What are Jordan Long's hobbies?", 
-        priorConvo, 
-        setError, 
-        setClaudeResponse
-      );
-      setLoaded(true);
-    }
+    claudeCall('Who and what are you?', conversation.current, setClaudeResponse)
   }, []);
 
+  //handle claude response
+  useEffect(() => {
+    if(typeof claudeResponse !== 'undefined'){
+      setMessages([...messages,{ 
+        message: claudeResponse, 
+        position: 'single',
+        sender: 'Jordan AI',
+        direction: 'incoming' }]);
+    }
+    setClaudeThinking(false);
+    setClaudeResponse(undefined);
+  }, [claudeResponse])
+
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React + Me</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Output from call {error ?? claudeResponse}
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div style={{ position: "relative", height: "500px" }}>
+      <ChatContainer>
+        <ConversationHeader>
+          <Avatar
+            name="Jordan AI ChatBot"
+            src={JordanHiResIcon}
+          />
+          <ConversationHeader.Content
+            info="Generative AI ChatBot About Jordan Long"
+            userName="Jordan AI"
+          />
+          <ConversationHeader.Actions>
+            <InfoButton onClick={() => window.open('https://linkedin.com/in/jlongtlw', '_blank')}/>
+          </ConversationHeader.Actions>
+        </ConversationHeader>
+        <MessageList 
+          scrollBehavior="smooth" 
+          typingIndicator={
+            claudeThinking ?
+            <TypingIndicator content="Jordan AI is typing" /> :
+            <></>
+          }
+        >
+          {messages.map( (m,i) => <Message key={i} model={m} /> )}
+
+        </MessageList>
+        <MessageInput 
+          placeholder="Ask about Jordan..." 
+          onSend={handleSend} 
+          onChange={setMsgInputValue} 
+          value={msgInputValue} 
+          ref={inputRef}
+          attachButton={false}
+        />
+
+      </ChatContainer>
+    </div>
   )
 }
 
 export default App
+
