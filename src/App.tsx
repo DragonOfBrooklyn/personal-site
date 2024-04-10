@@ -9,8 +9,7 @@ import {
   Avatar,
   TypingIndicator,
 } from "@chatscope/chat-ui-kit-react";
-import axios, { AxiosError } from 'axios'
-import JordanIcon from './assets/JordanIcon.svg';
+import axios, { AxiosError } from 'axios';
 import JordanHiResIcon from './assets/JordanHiResIcon.jpeg';
 import './App.css'
 // import styles from "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -129,4 +128,3 @@ function App() {
 }
 
 export default App
-
