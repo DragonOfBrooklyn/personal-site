@@ -20,14 +20,10 @@ interface Turn {
 }
 
 const claudeCall = async (
-  newQuery: string, 
+  query: string, 
   oldConversation: Turn[], 
   setClaudeResponse
   ) => {
-  const conversation: Turn[] = [
-    ...oldConversation,
-    { role: 'user', content: newQuery }
-  ];
   const config = {
     headers: {
       'jlong-authorization': 'PersonalSiteForJordanLong',
@@ -38,7 +34,7 @@ const claudeCall = async (
 
   await axios.post(
     import.meta.env.VITE_SERVER_URL, 
-    {conversation}, 
+    {oldConversation, query}, 
     config)
   .then((value) => {
     setClaudeResponse(value.data.text);
