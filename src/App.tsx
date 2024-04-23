@@ -12,10 +12,10 @@ import {
 import axios, { AxiosError } from 'axios';
 import JordanHiResIcon from './assets/JordanHiResIcon.jpeg';
 import './App.css'
-import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+// import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
 interface Turn {
-  role: 'user' | 'assistant',
+  role: 'user' | 'assistant' | 'error',
   content: string
 }
 
@@ -33,11 +33,13 @@ const claudeCall = async (
   };
 
   await axios.post(
-    import.meta.env.VITE_SERVER_URL, 
+    // import.meta.env.VITE_DEV_SERVER_URL, //bun dev server
+    import.meta.env.VITE_SERVER_URL, //live lambda function
     {oldConversation, query}, 
     config)
   .then((value) => {
     setClaudeResponse(value.data.text);
+    // console.log(`claude responds ${new Date().toLocaleTimeString()}`);
   }).catch((err: AxiosError) => {
     console.log(err.message)
     setClaudeResponse(err.message);
@@ -66,6 +68,7 @@ function App() {
   };
   //on page load, make first, silent prompt to Claude
   useEffect(() => {
+    // console.log(`page load silent call ${new Date().toLocaleTimeString()}`);
     claudeCall('Who and what are you?', conversation.current, setClaudeResponse)
   }, []);
 
