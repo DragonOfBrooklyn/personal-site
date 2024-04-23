@@ -12,7 +12,7 @@ import {
 import axios, { AxiosError } from 'axios';
 import JordanHiResIcon from './assets/JordanHiResIcon.jpeg';
 import './App.css'
-// import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
 interface Turn {
   role: 'user' | 'assistant' | 'error',
