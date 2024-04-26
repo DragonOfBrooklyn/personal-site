@@ -13,6 +13,10 @@
     "@anthropic-ai/sdk": "^0.19.0",
     "@chatscope/chat-ui-kit-react": "^2.0.3",
     "@chatscope/chat-ui-kit-styles": "^1.4.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@fontsource/roboto": "^5.0.13",
+    "@mui/material": "^5.15.15",
     "axios": "^1.6.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
