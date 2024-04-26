@@ -97,8 +97,7 @@ function App() {
   const [claudeResponse, setClaudeResponse] = useState(undefined);
   const [claudeThinking, setClaudeThinking] = useState(false);
   const [loading, setLoading] = useState(true);
-  const conversation = React.useRef<Turn[]>([
-  ]);
+  const conversation = React.useRef<Turn[]>([]);
 
   const handleSend = message => {
     setClaudeThinking(true);
@@ -110,7 +109,9 @@ function App() {
     setMsgInputValue("");
     inputRef.current?.focus();
     claudeCall(message, conversation.current, setClaudeResponse);
-    conversation.current.push({role: 'user', content: message});
+    // console.log(conversation.current);
+    // conversation.current.push({role: 'user', content: message});
+    // console.log(conversation.current);
   };
   //on page load, make first, silent prompt to Claude
   useEffect(() => {
@@ -125,7 +126,7 @@ function App() {
         position: 'single',
         sender: 'Jordan AI',
         direction: 'incoming' }]);
-      conversation.current.push({role: 'assistant', content: claudeResponse});
+      // conversation.current.push({role: 'assistant', content: claudeResponse});
     }
     setClaudeThinking(false);
     setClaudeResponse(undefined);
