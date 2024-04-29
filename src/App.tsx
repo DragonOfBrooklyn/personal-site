@@ -12,23 +12,19 @@ import {
 import axios, { AxiosError } from 'axios';
 import { 
   Backdrop,
-  // Box, 
+  Box, 
   CircularProgress, 
   Modal, 
-  // Typography,
+  Typography,
 } from '@mui/material';
+import { type MessageParam } from '@anthropic-ai/sdk/resources/messages.mjs';
 import JordanHiResIcon from './assets/JordanHiResIcon.jpeg';
 import './App.css'
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
-interface Turn {
-  role: 'user' | 'assistant' | 'error',
-  content: string
-}
-
 const claudeCall = async (
   query: string, 
-  oldConversation: Turn[], 
+  oldConversation: MessageParam[], 
   setClaudeResponse
   ) => {
   const config = {
@@ -53,19 +49,19 @@ const claudeCall = async (
   });
 }
 
-// const modalBoxStyle = {
-//   position: 'absolute' as 'absolute',
-//   top: '55vh',
-//   left: '50%',
-//   transform: 'translate(-50%, -50%)',
-//   width: '40vw',
-//   minWidth: '200px',
-//   bgcolor: '#c6e3fa',
-//   border: '2px solid #000',
-//   borderRaduis: '.7em',
-//   boxShadow: 24,
-//   p: 4,
-// };
+const modalBoxStyle = {
+  position: 'absolute' as 'absolute',
+  top: '55vh',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '40vw',
+  minWidth: '200px',
+  bgcolor: '#c6e3fa',
+  border: '2px solid #000',
+  borderRaduis: '.7em',
+  boxShadow: 24,
+  p: 4,
+};
 
 function GradientCircularProgress() {
   return (
@@ -83,7 +79,7 @@ function GradientCircularProgress() {
         sx={{ 
           'svg circle': { stroke: 'url(#my_gradient)' },
           position: 'absolute',
-          top: '45vh',
+          top: '35vh',
           left: '45vw',
            }} />
     </React.Fragment>
@@ -97,7 +93,8 @@ function App() {
   const [claudeResponse, setClaudeResponse] = useState(undefined);
   const [claudeThinking, setClaudeThinking] = useState(false);
   const [loading, setLoading] = useState(true);
-  const conversation = React.useRef<Turn[]>([]);
+  const [coldStartLoad, setColdStartLoad] = useState(false);
+  const conversation = React.useRef<MessageParam[]>([]);
 
   const handleSend = message => {
     setClaudeThinking(true);
@@ -109,24 +106,34 @@ function App() {
     setMsgInputValue("");
     inputRef.current?.focus();
     claudeCall(message, conversation.current, setClaudeResponse);
-    // console.log(conversation.current);
-    // conversation.current.push({role: 'user', content: message});
-    // console.log(conversation.current);
+    /**
+     while this correctly updates the ref and the array sends to the backend in the correct type
+     it appears the anthropic sdk/api doesn't accept conversations with more than one message object
+     that info would likely need to be sent as a document. 
+     I tried this but I didn't like how it was responding so I just removed any mention of the prior conversation
+     Not ideal but it'll work for now and most users likely won't notice anyway.
+     */
+
+    conversation.current = [...conversation.current, {role: 'user', content: message}];
   };
   //on page load, make first, silent prompt to Claude
   useEffect(() => {
     claudeCall('What are you?', conversation.current, setClaudeResponse);
+    setTimeout(() => {
+      if(typeof claudeResponse === 'undefined') setColdStartLoad(true);
+    },8000);
   }, []);
   //handle claude response
   useEffect(() => {
     if(typeof claudeResponse !== 'undefined'){
+      if(coldStartLoad) setColdStartLoad(false);
       if(loading) setLoading(false);
       setMessages([...messages,{ 
         message: claudeResponse, 
         position: 'single',
         sender: 'Jordan AI',
         direction: 'incoming' }]);
-      // conversation.current.push({role: 'assistant', content: claudeResponse});
+      conversation.current = [...conversation.current, {role: 'assistant', content: claudeResponse}];
     }
     setClaudeThinking(false);
     setClaudeResponse(undefined);
@@ -140,9 +147,15 @@ function App() {
         slotProps={{backdrop: {timeout: 500}}}
       >
         <>
-          {/* <Box sx={modalBoxStyle}>
-
-          </Box> */}
+          {coldStartLoad ? 
+          <Box sx={modalBoxStyle}>
+            <Typography variant="body1">
+              Think it's loading slow? This page is cold starting so it'll take a bit longer. If you're curious why it's cold starting, simply ask in the chat!
+              You may experience another cold start delay if you haven't asked a question to Jordan AI in awhile.
+              Thanks for your patience!
+            </Typography>
+          </Box> :
+          <></>}
           <GradientCircularProgress />
         </>
       </Modal>
@@ -172,7 +185,6 @@ function App() {
             }
           >
             {messages.map( (m,i) => <Message key={i} model={m} /> )}
-
           </MessageList>
           <MessageInput 
             placeholder="Ask about Jordan..." 
@@ -182,7 +194,6 @@ function App() {
             ref={inputRef}
             attachButton={false}
           />
-
         </ChatContainer>
       </div>
     </>
